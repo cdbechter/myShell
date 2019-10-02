@@ -1,0 +1,9 @@
+ls
+ls -l > ls.txt
+ls -lah >> ls.txt
+echo "hello world"
+cd ..
+pause
+environ | wc
+help
+echo "bye"

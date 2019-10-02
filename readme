@@ -1,0 +1,69 @@
+HELP MANUAL
+**********************************************************************************************************
+This document will help you learn how to use this shell program with:
+    -Syntax
+    -Supported Commands
+    -Features
+**********************************************************************************************************
+General Syntax:
+    -path/prompt followed by command/argument
+        -ex: myshell/ ls
+    -arguments separated by whitespace
+    -press Enter to execute command
+**********************************************************************************************************
+Supported Internal Commands:
+    -cd <directory>: changes directory from current directory to specified directory
+    -clr or clear: clear the terminal window
+    -dir <directory>: shows what is inside the specified directory
+    -echo <comment>: displays comment on screen followed by newline
+    -environ: lists all environment strings
+    -help: will display this help manual doc (press enter to scroll)
+    -pause: shell is paused until user presses Enter
+    -quit: exits shell
+**********************************************************************************************************
+FEATURES:
+
+IO Redirection:
+    -This shell allows users to use files as input/outputs, a process known as IO redirection:
+    -Types:
+        Output 1:
+            -Syntax: command > file
+            -example: ls -lah > list.txt
+            -this will take the output of ls -lah and put it in the file list.txt and it will erase 
+	     whatever was in list.txt before
+        Output 2:
+            -Syntax: command >> file
+            -example: ls -l >> list.txt
+            -this will take output of ls -l and append to the file list.txt without erasing previously
+	     information in the file
+        Input:
+            -Syntax: command < file
+            -example: program.out < inputFile.txt
+            -this will run the program program.out and pass in inputFile.txt as an input
+        Mixing Input and Output:
+            -can use IO redirection with both input and output
+            -example: wc < in.txt > out.txt
+            -this will count the lines, words, and characters in file in.txt and output
+             this count to out.txt
+----------------------------------------------------------------------------------------------------------
+Piping:
+    -This shell supports piping which takes the output of one program and uses it as the input of 
+     another program. Also supports command and argument
+    -General Syntax: prog1/command1 | prog2/command2
+    -example: ls -l | wc
+    -This will take output of ls -l and use at as input for wc
+----------------------------------------------------------------------------------------------------------
+Background Processes:
+    -This shell supports running processes in the background
+    -Syntax: command & (note that & must be at end of command or command argument)
+    -example: ls -l &
+    -this will run ls -l command in background
+----------------------------------------------------------------------------------------------------------
+Batch File Use:
+    -This shell supports running the shell with a batchfile as an argument. Batchfile should have
+     valid commands.
+    -Syntax: myshell batchfilePATH
+    -example: myshell batchfile.txt
+    -This should be done outside of shell program as in before running the executable and not after
+     shell is already running
+**********************************************************************************************************

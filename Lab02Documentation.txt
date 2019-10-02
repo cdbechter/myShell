@@ -1,0 +1,164 @@
+Chris Bechter
+CIS 3207
+Lab02 Documentation
+
+
+The point in this Lab is to build a simple shell, a basic command line program, which will have the ability to take commands 
+from the user and execute each and every command, including I/O redirection such as inputting files, outputting files, and 
+piping commands. This program should act like many UNIX based shells.
+The start of this documentation is from our provided pdf and notes I acquired in class, and in lab with shared opinions from 
+fellow students around me.
+
+/******************************* Notes from PDF/Class/Lab ***********************************/
+    1) separate functions for each of the commands : all having parameters **args
+    ----------- Internal Commands --------------
+    a. cd <directory> - Change the current default directory to <directory>. 
+        If the <directory> argument is not present, report the current directory. If the directory 
+        does not exist an appropriate error should be reported. This command should also change 
+        the PWD environment variable.
+    b. clr - Clear the screen. <clear on mac>
+    c. dir <directory> - List the contents of directory <directory> <dirs on mac>.
+    d. environ - List all the environment strings. <env on mac>
+        -> The shell environment should contain
+        shell=<pathname>/myshell where <pathname>/myshell is the full path for the shell 
+        executable(not a hardwired path back to your directory, but the one from 
+        which it was executed)
+    e. echo <comment> - Display <comment> on the display followed
+        by a new line (multiple spaces/tabs may be reduced to a
+        single space).
+    f. help - Display the user manual using the more filter.
+    g. pause - Pause operation of the shell until 'Enter' is pressed.
+    h. quit - Quit the shell. (same as exit)
+    i. Shell should be an Absolute Path
+    set Shell = /usr/cdbechter/myshell
+    ------------- External Commands --------------
+    I/O redirection
+    ./ is an execute file command
+    ./myshell batchfile
+        -> instead of running a loop and taking in commands, it will read in the 
+        bash file with all the commands, executing each, then exiting
+    
+    ls -l > tempfile
+    more tempfile
+    wc < tempfile
+
+    directly pipe ls -l to word count by piping instead of using read/write
+    ls -l | wc
+
+    //cwd = home/data/Lab02 (current working directory)
+    //shell = ../.../myshell
+    //make the path point to the shell
+
+/***********************************************************************************/
+
+The libraries that will be executed as of now, before i realize many more need to be utilized are as follows:
+    #include <sys/stat.h>
+    #include <sys/types.h>
+    #include <fcntl.h>
+    #include <dirent.h>
+    #include <errno.h>
+    #include <string.h>
+    #include <sys/wait.h>
+
+Each of the internal commands will be executed with their own functions but using each of the libraries will be a 
+simple matter of calling the correct functions in the libraries.
+
+Start with the main which we will utilize the args > 1 command to see if their is a batch file we need to input, 
+if there is none, move onto the shell loop The next is creating the batch function to read in and execute all the 
+commands in the batch.
+procedure main
+  if(num of args > 1)
+    read_batch()
+  else
+    start_loop()
+
+procedure read_batch
+  while(end of file = FALSE)
+    input = read_line()
+    split_line = parse_input(input)
+    exec_cmd(split_line)
+
+Now we start the beginning of the loop that will run the shell commands
+Check if exit is the first command, if not, get current directory, bring the current directory with a Prompt
+now read in the new line, parse and split it.
+procedure start_loop
+    while(state != exit)
+        current_dir = get_cwd()
+        print("(print cwd)> ")
+        input = read_line()
+        split_line = parse_input(input)
+        exec_cmd(split_line)
+
+Now the program will parse the line looking for key symbols that will be stored in the header file but for pseudocode
+purposes, will be in the function as their own functionality. It will return to split_line. It correlates each
+symbol with the output, input, background, and piping symbols.
+procedure parse_input(input)
+    split_line[]
+    while(input != NULL)
+        if(input = '&')
+            symbol_type = '&'
+        else if(input = '<')
+            symbol_type = '<'
+        else if(input = '>')
+            symbol_type = '>'
+        else if(input = '|')
+            symbol_type = '|'
+        split_line[counter++] = input
+        input = input seperated by white spaces
+    return split_line
+
+Move onto the execute command portion of the code that takes the split_line argument and decides whether it is a 
+background process, then to execute the fork/child parameters, because it is a piping, input, or output
+procedure execute_command(split_line)
+    if(symbol_type = '&')
+        background_process = TRUE
+    pid = fork()
+    if(pid == 0) //child
+        exec(split_line[0], split_line[1])
+    else if(parent)
+        if(background_process != TRUE)
+            wait()
+
+Now to execute the right piping command, split the command by making the split_input an argument, figure out which symbol
+to appropriately call the pipe command. If not symbols, we execute the internal command inputted
+procedure exec_cmd(split_line)
+    if(symbol_type != '|' or '>' or '<')
+        if(split_line[0]) //internal command
+            command = split_line[0]
+            exec(split_line[1])
+        else
+            execute_command(split_line)
+    else
+        args_left_symbol
+        args_right_symbol
+        if(symbol_type = '|')
+            call_pipe(args_left_symbol, args_right_symbol)
+        else if('<')
+            redirect(args_left_symbol, args_right_symbol, <)
+        else if('>')
+            redirect(args_left_symbol, args_right_symbol, >)
+
+Piping will take some time to master, I know that I have to use function direction, and dup2 because apparently
+dup1 is out of date. I don't have pseudocode yet because I'm still trying to figure out the algorithm for this function.
+I know that i have to fork several commands, depending on the arguments of readline should it find the | command, and 
+essentially split the commands themselves. 
+
+The I/O redirect works like the pseudocode i explained above but it all has to do with 3 symbols, the '>' which outputs
+a file to a file, '<' an input command to input a file to the command, and of course the very difficult input concept of 
+'|' which deals with piping.
+    Output of commands can be redirected from stdout to a file
+        command > file
+        In this case, the output of command is redirected to file, if file does not exist then the shell will create one
+    Input of commands can be from a file
+        command < file
+        The command takes input from file
+    Output of one command can be chained to the input or output of another command
+        command1 | command2
+        where command1 sends data or takes through pipe to command2.
+
+Lastly is the background processes that continue using the ampersand symbol '&' without a wait
+The program generally waits for one process to finish before it begins another but by using the '&' symbol,
+this wait is bypassed and the next command is immediately executed. This could prove to be a problem though should
+the parents never exit the children, creating zombie children, and wasting space but thats a problem to try to 
+dedub and fix with exceptions.
+    
